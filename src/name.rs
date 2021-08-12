@@ -47,3 +47,27 @@ impl<'a> From<&'a str> for Name {
 impl From<String> for Name {
   fn from(v: String) -> Name { Self { inner: Rc::from(v) } }
 }
+
+pub fn is_valid_symbol_char(c: char) -> bool {
+  c != ':'
+    && c != ';'
+    && c != '('
+    && c != ')'
+    && c != '{'
+    && c != '}'
+    && c != ','
+    && c != '⁰'
+    && c != '¹'
+    && c != '˚'
+    && c != '⁺'
+    && !char::is_whitespace(c)
+    && !char::is_control(c)
+}
+
+pub fn is_valid_symbol_string(s: &str) -> bool {
+  let invalid_chars = s.starts_with('"')
+    || s.starts_with('\'')
+    || s.starts_with('#')
+    || s.chars().any(|x| !is_valid_symbol_char(x));
+  !s.is_empty() && !invalid_chars
+}
