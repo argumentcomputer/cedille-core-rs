@@ -68,7 +68,7 @@ pub fn parse_lam(
     for b in bs.iter() {
       ctx2.push_front(b.clone());
     }
-    let (upto, bod) = parse_telescope(input, ctx2)(i)?;
+    let (upto, bod) = parse_pure_telescope(input, ctx2)(i)?;
     let pos = Pos::from_upto(input, from, upto);
     let trm =
       bs.into_iter().rev().fold(bod, |acc, n| Pure::Lam(pos, n, Box::new(acc)));
@@ -99,7 +99,7 @@ pub fn parse_args(
   }
 }
 
-pub fn parse_telescope(
+pub fn parse_pure_telescope(
   input: Cid,
   ctx: Ctx,
 ) -> impl Fn(Span) -> IResult<Span, Pure, ParseError<Span>> {
@@ -125,7 +125,7 @@ pub fn parse_pure(
         "Pure application telescope",
         delimited(
           preceded(tag("("), parse_space),
-          parse_telescope(input, ctx.clone()),
+          parse_pure_telescope(input, ctx.clone()),
           preceded(parse_space, tag(")")),
         ),
       ),
@@ -197,5 +197,29 @@ pub mod tests {
         ))
       )
     );
+  }
+
+  #[quickcheck]
+  fn test_pure_parse_print(x: Pure) -> bool {
+    let i = format!("{}", x);
+    match parse_pure_telescope(input_cid(&i), Ctx::new())(Span::new(&i)) {
+      Ok((_, y)) => {
+        if x == y {
+          true
+        }
+        else {
+          println!("{:?}", x);
+          println!("{}", x);
+          println!("{:?}", y);
+          println!("{}", y);
+          false
+        }
+      }
+      Err(e) => {
+        println!("{}", x);
+        println!("{}", e);
+        false
+      }
+    }
   }
 }

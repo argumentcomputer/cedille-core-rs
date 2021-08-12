@@ -1,6 +1,7 @@
 use crate::{
   name::Name,
   position::Pos,
+  print::pure,
 };
 
 use sp_std::{
@@ -36,6 +37,34 @@ impl PartialEq for Pure {
       (Self::Lam(_, na, ba), Self::Lam(_, nb, bb)) => na == nb && ba == bb,
       (Self::App(_, fa, aa), Self::App(_, fb, ab)) => fa == fb && aa == ab,
       _ => false,
+    }
+  }
+}
+
+impl fmt::Display for Pure {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    write!(f, "{}", pure::print(false, self))
+  }
+}
+
+#[cfg(test)]
+pub mod tests {
+  use super::*;
+  use crate::gen::pure::{
+    tests::arbitrary_pure,
+    Pure as GenPure,
+  };
+  use quickcheck::{
+    Arbitrary,
+    Gen,
+  };
+  use sp_im::Vector;
+  use sp_std::mem;
+
+  impl Arbitrary for Pure {
+    fn arbitrary(g: &mut Gen) -> Self {
+      let gen_pure = arbitrary_pure(g, Vector::new());
+      unsafe { mem::transmute::<GenPure, Pure>(gen_pure) }
     }
   }
 }
